@@ -1,7 +1,7 @@
 # Личный проект «Кекстаграм»
 
 * Студент: [Kateryna Timoschenko](https://up.htmlacademy.ru/javascript-individual/1/user/2520051).
-* Наставник: `Неизвестно`.
+* Наставник: Павел Ившин.
 
 ---
 
