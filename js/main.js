@@ -1,2 +1,4 @@
-import './popup.js';
+import './rendering-pictures.js';
+import './rendering-big-picture.js';
+
 
