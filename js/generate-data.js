@@ -5,7 +5,7 @@ const generateId = getUniqueInteger(1, COUNT_PHOTOS);
 const generatePhotoId = getUniqueInteger(1, COUNT_PHOTOS);
 const generateCommentId = getUniqueInteger(1, 1000);
 
-const createComents = () => Array.from({length: getRandomInteger(0, 5)}, () => ({
+const createComents = () => Array.from({length: getRandomInteger(3, 15)}, () => ({
   id: generateCommentId(),
   avatar: `img/avatar-${getRandomInteger(1, COUNT_AVATARS)}.svg`,
   message: getRandomArrayElement(MESSAGES),
