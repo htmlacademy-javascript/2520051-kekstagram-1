@@ -5,7 +5,7 @@ const bigPicture = document.querySelector('.big-picture');
 const btnCloseBigPicture = bigPicture.querySelector('#picture-cancel');
 const commentsLoader = bigPicture.querySelector('.comments-loader');
 
-const renderOneComment = function (name, avatar, message) {
+const renderOneComment = (name, avatar, message) => {
   const liElement = document.createElement('li');
   liElement.classList.add('social__comment');
 
@@ -25,15 +25,15 @@ const renderOneComment = function (name, avatar, message) {
   return liElement;
 };
 
-function createNumFiveGenerator () {
+const createNumFiveGenerator = () => {
   let lastGeneratedId = 5;
   return function () {
     lastGeneratedId += 5;
     return lastGeneratedId;
   };
-}
+};
 
-const renderComments = function (comments, n) {
+const renderComments = (comments, n) => {
   const commentsContainer = bigPicture.querySelector('.social__comments');
   commentsContainer.innerHTML = '';
   let commentCount = n;
@@ -49,7 +49,7 @@ const renderComments = function (comments, n) {
   }
 };
 
-const renderBigPicture = function (data) {
+const renderBigPicture = (data) => {
   bigPicture.classList.remove('hidden');
   bigPicture.querySelector('.big-picture__img > img').src = data['url'];
   bigPicture.querySelector('.social__caption').textContent = data['description'];
@@ -81,17 +81,16 @@ function closeBigPicture() {
   document.removeEventListener('keydown', onDocumentKeydown);
 }
 
-const openBigPicture = function (evt) {
+const openBigPicture = (evt) => {
 
   if (evt.target.matches('.picture__img')) {
-    // evt.stopPropagation(); не работает, a.href (атрибут ссылки) не является частью всплытия события для события клика на изображении (<img>), которое находится внутри тега <a>.
     evt.preventDefault();
     const prewId = evt.target.dataset.indexNumber;
     const previewData = findPhotoById(+prewId);
     renderBigPicture(previewData);
+    document.body.classList.add('modal-open');
+    document.addEventListener('keydown', onDocumentKeydown);
   }
-  document.body.classList.add('modal-open');
-  document.addEventListener('keydown', onDocumentKeydown);
 };
 
 pictureContainer.addEventListener('click', openBigPicture);
