@@ -1,4 +1,4 @@
-import {createdPhotoInfo} from './generate-data.js';
+import {dataGalery} from './rendering-pictures.js';
 
 const pictureContainer = document.querySelector('.pictures');
 const bigPicture = document.querySelector('.big-picture');
@@ -61,9 +61,9 @@ const renderBigPicture = (data) => {
 };
 
 const findPhotoById = (id) => {
-  for (let i = 0; i < createdPhotoInfo.length; i++) {
-    if (createdPhotoInfo[i].id === id) {
-      return createdPhotoInfo[i];
+  for (let i = 0; i < dataGalery.length; i++) {
+    if (dataGalery[i].id === id) {
+      return dataGalery[i];
     }
   }
 };
