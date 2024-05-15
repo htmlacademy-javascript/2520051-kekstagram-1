@@ -1,3 +1,6 @@
+import {validateForm} from './form-validate.js';
+import {sendPhoto} from './fetch-source.js';
+
 const MINSCALE = 25;
 const MAXSCALE = 100;
 const SCALESTEP = 25;
@@ -120,69 +123,78 @@ const onClosePicture = () => {
   inputDescription.value = '';
   imgPreview.removeAttribute('style');
   imgPreview.removeAttribute('class');
+  scaleValue.value = '100%';
+  sliderField.style.display = 'none';
   document.removeEventListener('keydown', onDocumentKeydown);
 };
 
 const onLoadPicture = () => {
   document.querySelector('.img-upload__overlay').classList.remove('hidden');
   document.querySelector('body').classList.add('modal-open');
-  scaleValue.value = '100%';
-  sliderField.style.display = 'none';
+  // const reader = new FileReader(); // объект для чтения файла
+  // reader.readAsDataURL(uploadFile.files[0]);
+  // reader.onload = function(event) {
+  //   document.querySelector('.img-upload__preview > img').src = event.target.result;
+  // };
+  // ---- это будет в 12 уроке через URL.createObjectURL ----
+
+  // scaleValue.value = '100%';
+  // sliderField.style.display = 'none';
   document.addEventListener('keydown', onDocumentKeydown);
 };
 
 function onDocumentKeydown (evt) {
   if (evt.key === 'Escape') {
     evt.preventDefault();
-    onClosePicture();
+    const alertSect = document.querySelector('body > section');
+    if (alertSect) {
+      document.querySelector('body').removeChild(alertSect);
+    } else {
+      onClosePicture();
+    }
   }
 }
 
 uploadFile.addEventListener('change', onLoadPicture);
 cancelUploadFile.addEventListener('click', onClosePicture);
 
-const pristine = new Pristine(selectImageForm, {
-  classTo: 'img-upload__field-wrapper',
-  errorTextParent: 'img-upload__field-wrapper',
-  errorTextClass: 'img-upload__field-wrapper__error'
-});
+const pristine = validateForm(selectImageForm);
 
-const validateHashtagsCount = (value) => {
-  const values = value.trim().split(' ');
-  return values.length <= 5;
+const onSendData = (tmp) => {
+  const template = document.querySelector(`#${tmp}`).content.cloneNode(true);
+  const closeBtn = template.querySelector(`.${tmp}__button`);
+  document.querySelector('body').appendChild(template);
+  const mess = document.querySelector(`.${tmp}`);
+  mess.addEventListener('click', onDocumentClick);
+  closeBtn.addEventListener('click', ()=>{
+    document.querySelector('body').removeChild(mess);
+    document.removeEventListener('keydown', onDocumentKeydown);
+  });
 };
-const hashtagsCountError = 'можете указать максимум 5 хэш-тегов';
 
-const validateHashtagsUnique = (value) => {
-  const values = value.toLowerCase().trim().split(' ');
-  return values.length === [...new Set(values)].length;
+const onSuccessSendData = () => {
+  onSendData('success');
+  onClosePicture();
+  document.addEventListener('keydown', onDocumentKeydown);
 };
-const hashtagsUniqueError = 'хэш-теги не должны повторяться';
 
-const validateHashtags = (value) => {
-  if (!value) {
-    return true;
-  }
-  const val = value.trim().split(' ').at(-1);
-  return /^#[a-zа-я0-9]{1,19}$/i.test(val);
+const onErrorSendData = () => {
+  onSendData('error');
 };
-const hashtagsError = 'после "#" используйте буквы и числа (общая длина 20)';
-
-const validateHashtagsNums = (value) => {
-  const val = value.trim().split(' ').at(-1);
-  return !/^#\d{1,19}$/.test(val);
-};
-const hashtagsNumsError = 'нельзя использовать только числа';
-
-pristine.addValidator(inputHashtags, validateHashtagsCount, hashtagsCountError);
-pristine.addValidator(inputHashtags, validateHashtagsUnique, hashtagsUniqueError);
-pristine.addValidator(inputHashtags, validateHashtagsNums, hashtagsNumsError);
-pristine.addValidator(inputHashtags, validateHashtags, hashtagsError);
 
 selectImageForm.addEventListener('submit', (evt) =>{
   evt.preventDefault();
-  pristine.validate();
+  const isValid = pristine.validate();
+  if (isValid) {
+    sendPhoto(onSuccessSendData, onErrorSendData);
+  }
 });
+
+function onDocumentClick (evt) {
+  if (evt.target === this) {
+    document.querySelector('body').removeChild(this);
+  }
+}
 
 const elems = [inputHashtags, inputDescription];
 elems.forEach ((elem) => {
