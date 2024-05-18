@@ -1,11 +1,16 @@
 // import {createdPhotoInfo as dataGalery} from './generate-data.js';
-import {createGalery} from './fetch-source.js';
+import { getDataGalery } from './fetch-source.js';
+import { getArrayRandomUniqueElements, debounce } from './util.js';
 
+
+const NUMBER_PICTURES = 10;
+const RERENDER_DELAY = 500;
+let dataGalery = [];
 
 const pictureTemplate = document.querySelector('#picture').content;
 const similarListElement = document.querySelector('.pictures');
 const similarListFragment = document.createDocumentFragment();
-const dataGalery = [];
+const imgFilters = document.querySelector('.img-filters');
 
 const renderGalery = (data) => {
   data.forEach((pic) => {
@@ -15,10 +20,15 @@ const renderGalery = (data) => {
     pictureElement.querySelector('.picture__comments').textContent = pic.comments.length;
     pictureElement.querySelector('.picture__likes').textContent = pic.likes;
     similarListFragment.appendChild(pictureElement);
-    dataGalery.push(pic);
+  });
+  Array.from(similarListElement.children).forEach((child) => {
+    if (child.classList.contains('picture')) {
+      similarListElement.removeChild(child);
+    }
   });
   similarListElement.appendChild(similarListFragment);
 };
+
 const onErrorLoad = () => {
   const template = document.querySelector('#error').content.cloneNode(true);
   template.querySelector('h2').textContent = 'Ошибка загрузки данных';
@@ -36,8 +46,35 @@ const onErrorLoad = () => {
     }
   }, 1500);
 };
-const loadGalery = createGalery(renderGalery, onErrorLoad);
 
-loadGalery();
+try {
+  dataGalery = await getDataGalery();
+  renderGalery(dataGalery);
+  imgFilters.classList.remove('img-filters--inactive');
+} catch (err) {
+  onErrorLoad();
+}
+
+const defaultSort = () => dataGalery;
+const randomSort = () => getArrayRandomUniqueElements(dataGalery, NUMBER_PICTURES);
+const discussedSort = () => dataGalery.slice().sort((a, b) => b.comments.length - a.comments.length);
+
+
+const sortFunction = {
+  'filter-random': randomSort,
+  'filter-discussed': discussedSort,
+  'filter-default': defaultSort,
+};
+
+const imgFiltersForm = document.querySelector('.img-filters__form');
+imgFiltersForm.addEventListener('click', debounce((evt) => {
+  for (const btn of imgFiltersForm.children) {
+    btn.classList.remove('img-filters__button--active');
+  }
+  evt.target.classList.add('img-filters__button--active');
+  const typeSort = evt.target.id;
+  const datas = sortFunction[typeSort]();
+  renderGalery(datas);
+}), RERENDER_DELAY);
 
 export {dataGalery};

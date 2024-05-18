@@ -4,6 +4,8 @@ import {sendPhoto} from './fetch-source.js';
 const MINSCALE = 25;
 const MAXSCALE = 100;
 const SCALESTEP = 25;
+const FILE_TYPES = ['jpg', 'jpeg', 'png'];
+
 const uploadFile = document.querySelector('#upload-file');
 const cancelUploadFile = document.querySelector('#upload-cancel');
 const selectImageForm = document.querySelector('#upload-select-image');
@@ -131,15 +133,15 @@ const onClosePicture = () => {
 const onLoadPicture = () => {
   document.querySelector('.img-upload__overlay').classList.remove('hidden');
   document.querySelector('body').classList.add('modal-open');
-  // const reader = new FileReader(); // объект для чтения файла
-  // reader.readAsDataURL(uploadFile.files[0]);
-  // reader.onload = function(event) {
-  //   document.querySelector('.img-upload__preview > img').src = event.target.result;
-  // };
-  // ---- это будет в 12 уроке через URL.createObjectURL ----
+  const imgFile = uploadFile.files[0];
+  const fileName = imgFile.name.toLowerCase();
 
-  // scaleValue.value = '100%';
-  // sliderField.style.display = 'none';
+  const matches = FILE_TYPES.some((it) => fileName.endsWith(it));
+
+  if (matches) {
+    document.querySelector('.img-upload__preview > img').src = URL.createObjectURL(imgFile);
+  }
+
   document.addEventListener('keydown', onDocumentKeydown);
 };
 
