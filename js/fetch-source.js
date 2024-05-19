@@ -33,7 +33,7 @@ export const sendPhoto = (onSuccess, onError) => {
   }).finally(unblockSubmitButton);
 };
 
-export const createGalery = (onSuccess, onError) => () => fetch(dataSource)
+export const getDataGalery = () => fetch(dataSource)
   .then((response) => {
     if (response.ok) {
       return response;
@@ -41,7 +41,6 @@ export const createGalery = (onSuccess, onError) => () => fetch(dataSource)
 
     throw new Error(`${response.status} — ${response.statusText}`);
   })
-  .then((response) => response.json())
-  .then((data) => onSuccess(data))
-  .catch((err) => onError(err));
+  .then((response) => response.json());
+
 
