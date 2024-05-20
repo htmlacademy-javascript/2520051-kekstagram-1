@@ -1,26 +1,65 @@
 import {validateForm} from './form-validate.js';
 import {sendPhoto} from './fetch-source.js';
 
-const MINSCALE = 25;
-const MAXSCALE = 100;
-const SCALESTEP = 25;
+const MIN_SCALE = 25;
+const MAX_SCALE = 100;
+const SCALE_STEP = 25;
 const FILE_TYPES = ['jpg', 'jpeg', 'png'];
 
-const uploadFile = document.querySelector('#upload-file');
-const cancelUploadFile = document.querySelector('#upload-cancel');
+const effectOptions = {
+  chrome:{
+    range: {
+      min: 0,
+      max: 1,
+    },
+    step: 0.1,
+  },
+  sepia:{
+    range: {
+      min: 0,
+      max: 1,
+    },
+    step: 0.1,
+  },
+  marvin: {
+    range: {
+      min: 0,
+      max: 100,
+    },
+    step: 1,
+  },
+  phobos:{
+    range: {
+      min: 0,
+      max: 3,
+    },
+    step: 0.1,
+  },
+  heat:{
+    range: {
+      min: 0,
+      max: 3,
+    },
+    step: 0.1,
+  }
+};
+
+const uploadingFileElement = document.querySelector('#upload-file');
+const cancelUploadingElement = document.querySelector('#upload-cancel');
 const selectImageForm = document.querySelector('#upload-select-image');
 const inputHashtags = selectImageForm.querySelector('.text__hashtags');
 const inputDescription = selectImageForm.querySelector('.text__description');
-const scaleSmaller = document.querySelector('.scale__control--smaller');
-const scaleBigger = document.querySelector('.scale__control--bigger');
-const scaleValue = document.querySelector('.scale__control--value');
-const imgPreview = document.querySelector('.img-upload__preview > img');
-const effectLevelValue = document.querySelector('.effect-level__value');
-const sliderElement = document.querySelector('.effect-level__slider');
-const sliderField = document.querySelector('.img-upload__effect-level');
-const radioEffectList = document.querySelector('.effects__list');
+const scaleSmallerControl = document.querySelector('.scale__control--smaller');
+const scaleBiggerControl = document.querySelector('.scale__control--bigger');
+const scaleValueControl = document.querySelector('.scale__control--value');
+const uploadingImgPreview = document.querySelector('.img-upload__preview > img');
+const effectLevelElement = document.querySelector('.effect-level__value');
+const effectSlider = document.querySelector('.effect-level__slider');
+const effectListElement = document.querySelector('.effects__list');
 
-noUiSlider.create(sliderElement, {
+const cancelEscElements = [inputHashtags, inputDescription];
+
+noUiSlider.create(effectSlider, {
   range: {
     min: 0,
     max: 100,
@@ -30,115 +69,83 @@ noUiSlider.create(sliderElement, {
   connect: 'lower',
 });
 
-sliderElement.noUiSlider.on('update', () => {
-  const effVal = sliderElement.noUiSlider.get();
-  effectLevelValue.value = effVal;
-  const eff = imgPreview.className.split('--')[1];
+effectSlider.noUiSlider.on('update', () => {
+  const effectValue = effectSlider.noUiSlider.get();
+  effectLevelElement.value = effectValue;
+  const effectTitle = uploadingImgPreview.className.split('--')[1];
   let filter = 'none';
-  switch (eff) {
+  switch (effectTitle) {
     case 'chrome':
-      filter = `grayscale(${effVal})`;
+      filter = `grayscale(${effectValue})`;
       break;
     case 'sepia':
-      filter = `sepia(${effVal})`;
+      filter = `sepia(${effectValue})`;
       break;
     case 'marvin':
-      filter = `invert(${effVal}%)`;
+      filter = `invert(${effectValue}%)`;
       break;
     case 'phobos':
-      filter = `blur(${effVal}px)`;
+      filter = `blur(${effectValue}px)`;
       break;
     case 'heat':
-      filter = `brightness(${effVal})`;
+      filter = `brightness(${effectValue})`;
       break;
   }
-  imgPreview.style.filter = filter;
+  uploadingImgPreview.style.filter = filter;
 });
 
-radioEffectList.addEventListener('change', (event) => {
+effectListElement.addEventListener('change', (event) => {
   if (event.target.matches('input[type="radio"]')) {
-    imgPreview.removeAttribute('class');
-    imgPreview.classList.add(`effects__preview--${event.target.value}`);
-    sliderField.style.display = 'block';
-    switch (event.target.value) {
-      case 'chrome':
-      case 'sepia':
-        sliderElement.noUiSlider.updateOptions({
-          range: {
-            min: 0,
-            max: 1,
-          },
-          step: 0.1,
-        });
-        sliderElement.noUiSlider.set(1);
-        break;
-      case 'marvin':
-        sliderElement.noUiSlider.updateOptions({
-          range: {
-            min: 0,
-            max: 100,
-          },
-          step: 1,
-        });
-        sliderElement.noUiSlider.set(100);
-        break;
-      case 'phobos':
-      case 'heat':
-        sliderElement.noUiSlider.updateOptions({
-          range: {
-            min: 0,
-            max: 3,
-          },
-          step: 0.1,
-        });
-        sliderElement.noUiSlider.set(3);
-        break;
-      default:
-        sliderField.style.display = 'none';
-        imgPreview.style.filter = 'none';
-        break;
+    uploadingImgPreview.removeAttribute('class');
+    uploadingImgPreview.classList.add(`effects__preview--${event.target.value}`);
+    effectSlider.parentNode.style.display = event.target.value === 'none' ? 'none' : 'block';
+    if (event.target.value === 'none') {
+      uploadingImgPreview.style.filter = 'none';
+    } else {
+      effectSlider.noUiSlider.updateOptions(effectOptions[event.target.value]);
+      effectSlider.noUiSlider.set(effectOptions[event.target.value].range.max);
     }
   }
 });
 
 const changeScaleVal = (scale) => {
-  const val = Number(scaleValue.value.slice(0,-1));
-  let newVal = val + scale;
-  if (newVal > MAXSCALE) {
-    newVal = MAXSCALE;
+  const currentValue = Number(scaleValueControl.value.slice(0,-1));
+  let newValue = currentValue + scale;
+  if (newValue > MAX_SCALE) {
+    newValue = MAX_SCALE;
   }
-  if (newVal < MINSCALE) {
-    newVal = MINSCALE;
+  if (newValue < MIN_SCALE) {
+    newValue = MIN_SCALE;
   }
-  scaleValue.value = `${newVal} %`;
-  imgPreview.style.transform = `scale(${newVal / 100})`;
+  scaleValueControl.value = `${newValue} %`;
+  uploadingImgPreview.style.transform = `scale(${newValue / 100})`;
 };
 
-scaleSmaller.addEventListener('click', () => changeScaleVal(-SCALESTEP));
-scaleBigger.addEventListener('click', () => changeScaleVal(SCALESTEP));
+scaleSmallerControl.addEventListener('click', () => changeScaleVal(-SCALE_STEP));
+scaleBiggerControl.addEventListener('click', () => changeScaleVal(SCALE_STEP));
 
 const onClosePicture = () => {
   document.querySelector('.img-upload__overlay').classList.add('hidden');
   document.querySelector('body').classList.remove('modal-open');
-  uploadFile.value = '';
+  uploadingFileElement.value = '';
   inputHashtags.value = '';
   inputDescription.value = '';
-  imgPreview.removeAttribute('style');
-  imgPreview.removeAttribute('class');
-  scaleValue.value = '100%';
-  sliderField.style.display = 'none';
+  uploadingImgPreview.removeAttribute('style');
+  uploadingImgPreview.removeAttribute('class');
+  scaleValueControl.value = '100%';
+  effectSlider.parentNode.style.display = 'none';
   document.removeEventListener('keydown', onDocumentKeydown);
 };
 
 const onLoadPicture = () => {
   document.querySelector('.img-upload__overlay').classList.remove('hidden');
   document.querySelector('body').classList.add('modal-open');
-  const imgFile = uploadFile.files[0];
+  const imgFile = uploadingFileElement.files[0];
   const fileName = imgFile.name.toLowerCase();
-
-  const matches = FILE_TYPES.some((it) => fileName.endsWith(it));
-
-  if (matches) {
+  effectSlider.parentNode.style.display = 'none';
+  scaleValueControl.value = '100%';
+  const isValidFormat = FILE_TYPES.some((extension) => fileName.endsWith(extension));
+  if (isValidFormat) {
     document.querySelector('.img-upload__preview > img').src = URL.createObjectURL(imgFile);
   }
 
@@ -157,12 +164,12 @@ function onDocumentKeydown (evt) {
   }
 }
 
-uploadFile.addEventListener('change', onLoadPicture);
-cancelUploadFile.addEventListener('click', onClosePicture);
+uploadingFileElement.addEventListener('change', onLoadPicture);
+cancelUploadingElement.addEventListener('click', onClosePicture);
 
 const pristine = validateForm(selectImageForm);
 
-const onSendData = (tmp) => {
+const onSubmitForm = (tmp) => {
   const template = document.querySelector(`#${tmp}`).content.cloneNode(true);
   const closeBtn = template.querySelector(`.${tmp}__button`);
   document.querySelector('body').appendChild(template);
@@ -175,13 +182,13 @@ const onSendData = (tmp) => {
 };
 
 const onSuccessSendData = () => {
-  onSendData('success');
+  onSubmitForm('success');
   onClosePicture();
   document.addEventListener('keydown', onDocumentKeydown);
 };
 
 const onErrorSendData = () => {
-  onSendData('error');
+  onSubmitForm('error');
 };
 
 selectImageForm.addEventListener('submit', (evt) =>{
@@ -198,8 +205,7 @@ function onDocumentClick (evt) {
   }
 }
 
-const elems = [inputHashtags, inputDescription];
-elems.forEach ((elem) => {
+cancelEscElements.forEach ((elem) => {
   elem.addEventListener('focus', () => document.removeEventListener('keydown', onDocumentKeydown));
   elem.addEventListener('blur', () => document.addEventListener('keydown', onDocumentKeydown));
 });

@@ -1,7 +1,7 @@
-export const validateForm = (selectImageForm) => {
-  const inputHashtags = selectImageForm.querySelector('.text__hashtags');
+export const validateForm = (form) => {
+  const inputHashtags = form.querySelector('.text__hashtags');
 
-  const pristine = new Pristine(selectImageForm, {
+  const pristine = new Pristine(form, {
     classTo: 'img-upload__field-wrapper',
     errorTextParent: 'img-upload__field-wrapper',
     errorTextClass: 'img-upload__field-wrapper__error'
@@ -19,14 +19,14 @@ export const validateForm = (selectImageForm) => {
   };
   const hashtagsUniqueError = 'хэш-теги не должны повторяться';
 
-  const validateHashtags = (value) => {
+  const validateHashtagsContext = (value) => {
     if (!value) {
       return true;
     }
     const val = value.trim().split(' ').at(-1);
     return /^#[a-zа-я0-9]{1,19}$/i.test(val);
   };
-  const hashtagsError = 'после "#" используйте буквы и числа (общая длина 20)';
+  const hashtagsContextError = 'после "#" используйте буквы и числа (общая длина 20)';
 
   const validateHashtagsNums = (value) => {
     const val = value.trim().split(' ').at(-1);
@@ -37,7 +37,7 @@ export const validateForm = (selectImageForm) => {
   pristine.addValidator(inputHashtags, validateHashtagsCount, hashtagsCountError);
   pristine.addValidator(inputHashtags, validateHashtagsUnique, hashtagsUniqueError);
   pristine.addValidator(inputHashtags, validateHashtagsNums, hashtagsNumsError);
-  pristine.addValidator(inputHashtags, validateHashtags, hashtagsError);
+  pristine.addValidator(inputHashtags, validateHashtagsContext, hashtagsContextError);
 
   return pristine;
 };

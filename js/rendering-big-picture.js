@@ -1,9 +1,14 @@
-import {dataGalery} from './rendering-pictures.js';
+import { createNumByStep } from './util.js';
 
-const pictureContainer = document.querySelector('.pictures');
-const bigPicture = document.querySelector('.big-picture');
-const btnCloseBigPicture = bigPicture.querySelector('#picture-cancel');
-const commentsLoader = bigPicture.querySelector('.comments-loader');
+const Avatar = {
+  WIDTH: 35,
+  HEIGHT: 35,
+};
+const COUNT_COMMENTS_PAGINATION = 5;
+
+const bigPictureElement = document.querySelector('.big-picture');
+const closeBigPictureElement = bigPictureElement.querySelector('#picture-cancel');
+const commentsLoader = bigPictureElement.querySelector('.comments-loader');
 
 const renderOneComment = (name, avatar, message) => {
   const liElement = document.createElement('li');
@@ -11,8 +16,8 @@ const renderOneComment = (name, avatar, message) => {
 
   const imgElement = document.createElement('img');
   imgElement.classList.add('social__picture');
-  imgElement.width = 35;
-  imgElement.height = 35;
+  imgElement.width = Avatar.WIDTH;
+  imgElement.height = Avatar.HEIGHT;
   imgElement.src = avatar;
   imgElement.alt = name;
 
@@ -25,16 +30,8 @@ const renderOneComment = (name, avatar, message) => {
   return liElement;
 };
 
-const createNumFiveGenerator = () => {
-  let lastGeneratedId = 5;
-  return function () {
-    lastGeneratedId += 5;
-    return lastGeneratedId;
-  };
-};
-
 const renderComments = (comments, n) => {
-  const commentsContainer = bigPicture.querySelector('.social__comments');
+  const commentsContainer = bigPictureElement.querySelector('.social__comments');
   commentsContainer.innerHTML = '';
   let commentCount = n;
   commentsLoader.classList.remove('hidden');
@@ -49,25 +46,6 @@ const renderComments = (comments, n) => {
   }
 };
 
-const renderBigPicture = (data) => {
-  bigPicture.classList.remove('hidden');
-  bigPicture.querySelector('.big-picture__img > img').src = data['url'];
-  bigPicture.querySelector('.social__caption').textContent = data['description'];
-  bigPicture.querySelector('.likes-count').textContent = data['likes'];
-  renderComments(data['comments'], 5);
-  bigPicture.querySelector('.comments-count').textContent = data['comments'].length;
-  const nextFiveComents = createNumFiveGenerator();
-  bigPicture.querySelector('.comments-loader').addEventListener('click', () => renderComments(data['comments'], nextFiveComents()));
-};
-
-const findPhotoById = (id) => {
-  for (let i = 0; i < dataGalery.length; i++) {
-    if (dataGalery[i].id === id) {
-      return dataGalery[i];
-    }
-  }
-};
-
 const onDocumentKeydown = (evt) => {
   if (evt.key === 'Escape') {
     evt.preventDefault();
@@ -75,23 +53,23 @@ const onDocumentKeydown = (evt) => {
   }
 };
 
+export const renderBigPicture = (data) => {
+  document.body.classList.add('modal-open');
+  document.addEventListener('keydown', onDocumentKeydown);
+  bigPictureElement.classList.remove('hidden');
+  bigPictureElement.querySelector('.big-picture__img > img').src = data.url;
+  bigPictureElement.querySelector('.social__caption').textContent = data.description;
+  bigPictureElement.querySelector('.likes-count').textContent = data.likes;
+  renderComments(data['comments'], COUNT_COMMENTS_PAGINATION);
+  bigPictureElement.querySelector('.comments-count').textContent = data.comments.length;
+  const nextNumber = createNumByStep(COUNT_COMMENTS_PAGINATION);
+  bigPictureElement.querySelector('.comments-loader').addEventListener('click', () => renderComments(data.comments, nextNumber()));
+};
+
 function closeBigPicture() {
-  bigPicture.classList.add('hidden');
+  bigPictureElement.classList.add('hidden');
   document.body.classList.remove('modal-open');
   document.removeEventListener('keydown', onDocumentKeydown);
 }
 
-const openBigPicture = (evt) => {
-
-  if (evt.target.matches('.picture__img')) {
-    evt.preventDefault();
-    const prewId = evt.target.dataset.indexNumber;
-    const previewData = findPhotoById(+prewId);
-    renderBigPicture(previewData);
-    document.body.classList.add('modal-open');
-    document.addEventListener('keydown', onDocumentKeydown);
-  }
-};
-
-pictureContainer.addEventListener('click', openBigPicture);
-btnCloseBigPicture.addEventListener('click', closeBigPicture);
+closeBigPictureElement.addEventListener('click', closeBigPicture);
