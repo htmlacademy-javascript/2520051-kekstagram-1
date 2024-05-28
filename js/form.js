@@ -94,16 +94,16 @@ effectSlider.noUiSlider.on('update', () => {
   uploadingImgPreview.style.filter = filter;
 });
 
-effectListElement.addEventListener('change', (event) => {
-  if (event.target.matches('input[type="radio"]')) {
+effectListElement.addEventListener('change', (evt) => {
+  if (evt.target.matches('input[type="radio"]')) {
     uploadingImgPreview.removeAttribute('class');
-    uploadingImgPreview.classList.add(`effects__preview--${event.target.value}`);
-    effectSlider.parentNode.style.display = event.target.value === 'none' ? 'none' : 'block';
-    if (event.target.value === 'none') {
+    uploadingImgPreview.classList.add(`effects__preview--${evt.target.value}`);
+    effectSlider.parentNode.style.display = evt.target.value === 'none' ? 'none' : 'block';
+    if (evt.target.value === 'none') {
       uploadingImgPreview.style.filter = 'none';
     } else {
-      effectSlider.noUiSlider.updateOptions(effectOptions[event.target.value]);
-      effectSlider.noUiSlider.set(effectOptions[event.target.value].range.max);
+      effectSlider.noUiSlider.updateOptions(effectOptions[evt.target.value]);
+      effectSlider.noUiSlider.set(effectOptions[evt.target.value].range.max);
     }
   }
 });
@@ -117,7 +117,7 @@ const changeScaleVal = (scale) => {
   if (newValue < MIN_SCALE) {
     newValue = MIN_SCALE;
   }
-  scaleValueControl.value = `${newValue} %`;
+  scaleValueControl.value = `${newValue}%`;
   uploadingImgPreview.style.transform = `scale(${newValue / 100})`;
 };
 
@@ -132,6 +132,10 @@ const onClosePicture = () => {
   inputDescription.value = '';
   uploadingImgPreview.removeAttribute('style');
   uploadingImgPreview.removeAttribute('class');
+  const pristineErrors = document.querySelectorAll('.pristine-error');
+  Array.from(pristineErrors).forEach ((elem) => {
+    elem.style.display = 'none';
+  });
   scaleValueControl.value = '100%';
   effectSlider.parentNode.style.display = 'none';
   document.removeEventListener('keydown', onDocumentKeydown);
