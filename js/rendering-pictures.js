@@ -79,7 +79,7 @@ const onSuccessUploadData = (dataGalery) => {
 
 
   renderGalery(dataGalery);
-  postListElement.addEventListener('click', (event) => openBigPicture(event, dataGalery));
+  postListElement.addEventListener('click', (evt) => openBigPicture(evt, dataGalery));
 
   imgFiltersForm.addEventListener('click', debounce((evt) => {
     for (const btn of imgFiltersForm.children) {
