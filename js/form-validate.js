@@ -23,14 +23,14 @@ export const validateForm = (form) => {
     if (!value) {
       return true;
     }
-    const val = value.trim().split(' ').at(-1);
-    return /^#[a-zа-я0-9]{1,19}$/i.test(val);
+    const val = value.trim().split(' ');
+    return val.every((elem) => /^#[a-zа-я0-9]{1,19}$/i.test(elem));
   };
   const hashtagsContextError = 'после "#" используйте буквы и числа (общая длина 20)';
 
   const validateHashtagsNums = (value) => {
-    const val = value.trim().split(' ').at(-1);
-    return !/^#\d{1,19}$/.test(val);
+    const val = value.trim().split(' ');
+    return val.every((elem) => !/^#\d{1,19}$/.test(elem));
   };
   const hashtagsNumsError = 'нельзя использовать только числа';
 
